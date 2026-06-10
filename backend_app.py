@@ -120,6 +120,10 @@ def ask():
     sql = ""
     try:
         sql = generar_sql(pregunta, rol)
+        # Control de acceso determinístico (no se confía en el LLM): si el rol es Manager
+        # y la consulta toca compensación, se bloquea acá sí o sí.
+        if rol == "manager" and any(t in sql.lower() for t in ["annual_compensation_usd", "compensation", "compensa"]):
+            return jsonify({"answer": "Compensacion restringida: el rol Manager no tiene acceso a datos de compensacion.", "sql": ""})
         if "restricted" in sql.lower():
             return jsonify({"answer": "Compensacion restringida: el rol Manager no tiene acceso a datos de compensacion.", "sql": ""})
         if not es_seguro(sql):
