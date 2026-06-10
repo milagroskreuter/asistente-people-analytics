@@ -81,9 +81,14 @@ def generar_sql(pregunta, rol):
     prompt = f"""Sos un generador de SQL para BigQuery (Standard SQL).
 {SCHEMA}
 {guard}
-Escribi UNA sola consulta SELECT que responda: "{pregunta}".
-Usa nombres de tabla completos con backticks, por ej. `{PROJECT}.{DATASET}.ees_clean`.
-Las columnas estan en snake_case.
+Reglas estrictas para no equivocarte:
+- Escribi UNA sola consulta SELECT que responda: "{pregunta}".
+- NO uses JOIN salvo que sea imprescindible; preferi consultar una sola tabla.
+- Vacantes abiertas = COUNT(*) de ta_clean con status = 'Active'. NUNCA cuentes recruiters ni uses DISTINCT para contar vacantes.
+- Cuida la granularidad: no dupliques filas. Si dudas, usa la consulta mas simple y directa.
+- Cada pregunta es independiente: no asumas contexto de preguntas anteriores. Si es ambigua, tomá la interpretacion mas literal.
+- Para la mediana usa APPROX_QUANTILES(time_to_fill, 2)[OFFSET(1)].
+Usa nombres de tabla completos con backticks, por ej. `{PROJECT}.{DATASET}.ees_clean`. Columnas en snake_case.
 Devolve SOLO el SQL, sin explicacion y sin marcas de codigo."""
     sql = llm(prompt).strip()
     # Saco solo las marcas de bloque de codigo (```sql ... ```), sin tocar los backticks
