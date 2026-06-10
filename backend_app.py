@@ -85,8 +85,13 @@ Escribi UNA sola consulta SELECT que responda: "{pregunta}".
 Usa nombres de tabla completos con backticks, por ej. `{PROJECT}.{DATASET}.ees_clean`.
 Las columnas estan en snake_case.
 Devolve SOLO el SQL, sin explicacion y sin marcas de codigo."""
-    sql = llm(prompt)
-    return re.sub(r"^```sql|```$", "", sql, flags=re.I).strip().strip("`").strip()
+    sql = llm(prompt).strip()
+    # Saco solo las marcas de bloque de codigo (```sql ... ```), sin tocar los backticks
+    # de los identificadores (tablas/columnas), que SI deben quedar.
+    if sql.startswith("```"):
+        sql = re.sub(r"^```[a-zA-Z]*\s*", "", sql)
+        sql = re.sub(r"\s*```$", "", sql)
+    return sql.strip()
 
 def es_seguro(sql):
     s = " " + sql.lower().strip() + " "
